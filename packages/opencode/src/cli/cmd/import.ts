@@ -4,12 +4,13 @@ import { Session } from "../../session"
 import { MessageV2 } from "../../session/message-v2"
 import { cmd } from "./cmd"
 import { bootstrap } from "../bootstrap"
-import { Database } from "../../storage/db"
+import { Database, eq } from "../../storage/db"
 import { SessionTable, MessageTable, PartTable } from "../../session/session.sql"
 import { Instance } from "../../project/instance"
 import { ShareNext } from "../../share/share-next"
 import { EOL } from "os"
 import { Filesystem } from "../../util/filesystem"
+import { SyncEvent } from "../../sync"
 
 /** Discriminated union returned by the ShareNext API (GET /api/shares/:id/data) */
 export type ShareData =
@@ -156,47 +157,37 @@ export const ImportCommand = cmd({
       const info = Session.Info.parse({
         ...exportData.info,
         projectID: Instance.project.id,
+        share: undefined, // Clear the imported share state
       })
-      const row = Session.toRow(info)
-      Database.use((db) =>
-        db
-          .insert(SessionTable)
-          .values(row)
-          .onConflictDoUpdate({ target: SessionTable.id, set: { project_id: row.project_id } })
-          .run(),
+
+      // Check if the session already exists in the database
+      const existingSession = Database.use((db) =>
+        db.select().from(SessionTable).where(eq(SessionTable.id, info.id)).get()
       )
 
-      for (const msg of exportData.messages) {
-        const msgInfo = MessageV2.Info.parse(msg.info)
-        const { id, sessionID: _, ...msgData } = msgInfo
-        Database.use((db) =>
-          db
-            .insert(MessageTable)
-            .values({
-              id,
-              session_id: row.id,
-              time_created: msgInfo.time?.created ?? Date.now(),
-              data: msgData,
-            })
-            .onConflictDoNothing()
-            .run(),
-        )
+      // Emit session event based on whether it exists
+      if (existingSession) {
+        SyncEvent.run(Session.Event.Updated, { sessionID: info.id, info })
+      } else {
+        SyncEvent.run(Session.Event.Created, { sessionID: info.id, info })
+      }
 
+      // Emit message events
+      for (const msg of exportData.messages) {
+        const msgInfo = MessageV2.Info.parse({
+          ...msg.info,
+          sessionID: info.id, // Override sessionID to match the imported session
+        })
+        SyncEvent.run(MessageV2.Event.Updated, { sessionID: info.id, info: msgInfo })
+
+        // Emit part events
         for (const part of msg.parts) {
-          const partInfo = MessageV2.Part.parse(part)
-          const { id: partId, sessionID: _s, messageID, ...partData } = partInfo
-          Database.use((db) =>
-            db
-              .insert(PartTable)
-              .values({
-                id: partId,
-                message_id: messageID,
-                session_id: row.id,
-                data: partData,
-              })
-              .onConflictDoNothing()
-              .run(),
-          )
+          const partInfo = MessageV2.Part.parse({
+            ...part,
+            sessionID: info.id, // Override sessionID to match the imported session
+            messageID: msgInfo.id, // Ensure messageID matches the parent message
+          })
+          SyncEvent.run(MessageV2.Event.PartUpdated, { sessionID: info.id, part: partInfo, time: Date.now() })
         }
       }
 

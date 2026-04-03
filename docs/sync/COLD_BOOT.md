@@ -33,3 +33,41 @@ Phase 1 (event audit) → Phase 2 (sync server) → Phase 3 (sync client) → Ph
 **Repo**: `/home/sam/projects/opencode-fork/` — fork of sst/opencode, branch `dev`
 **Plugin**: `/home/sam/projects/omo-sams-squad/` — custom agents + model routing
 **Cluster specs**: `~/cluster-specs/`
+
+## Beksinski Access Reference
+
+beksinski is the central sync hub VPS. Every phase that touches the network needs this info.
+
+```
+Host:     142.93.94.124
+User:     silo
+SSH:      ssh silo@142.93.94.124  (key-based, no password)
+Home:     /home/silo
+```
+
+**Currently running**: `opencode serve` v1.3.13
+```
+URL:      https://opencode.brokentooth.io
+Auth:     Basic — username: opencode
+          password: 91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=
+```
+
+**Sync server (to be deployed in Phase 2)**:
+```
+Port:     3001 (planned)
+Path:     /home/silo/sync-server/
+Service:  opencode-sync.service (systemd)
+DB:       /home/silo/sync-server/data/sync.db
+```
+
+**Quick test from any machine**:
+```bash
+# SSH access
+ssh silo@142.93.94.124 "uname -a"
+
+# Current opencode server
+curl -u opencode:'91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=' https://opencode.brokentooth.io/global/health
+
+# Sync server (after Phase 2 deploy)
+curl -u opencode:'91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=' https://opencode.brokentooth.io:3001/sync/health
+```

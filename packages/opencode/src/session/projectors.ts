@@ -1,9 +1,13 @@
-import { NotFoundError, eq, and } from "../storage/db"
+import { NotFoundError } from "../storage/db"
+import { eq, and } from "drizzle-orm"
 import { SyncEvent } from "@/sync"
 import { Session } from "./index"
 import { MessageV2 } from "./message-v2"
 import { SessionTable, MessageTable, PartTable } from "./session.sql"
 import { ProjectTable } from "../project/project.sql"
+import { TodoTable } from "./session.sql"
+
+import { Todo } from "./todo"
 import { Log } from "../util/log"
 
 const log = Log.create({ service: "session.projector" })
@@ -131,5 +135,20 @@ export default [
       if (!foreign(err)) throw err
       log.warn("ignored late part update", { partID: id, messageID, sessionID })
     }
+  }),
+
+  SyncEvent.project(Todo.Event.Updated, (db, data) => {
+    db.delete(TodoTable).where(eq(TodoTable.session_id, data.sessionID)).run()
+    if (data.todos.length === 0) return
+    
+    const rows = data.todos.map((todo, i) => ({
+      session_id: data.sessionID,
+      position: i,
+      content: todo.content,
+      status: todo.status,
+      priority: todo.priority,
+    }))
+    
+    db.insert(TodoTable).values(rows).run()
   }),
 ]

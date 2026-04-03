@@ -14,6 +14,8 @@ import { NodeFileSystem, NodePath } from "@effect/platform-node"
 import { makeRuntime } from "@/effect/run-service"
 import { AppFileSystem } from "@/filesystem"
 import * as CrossSpawnSpawner from "@/effect/cross-spawn-spawner"
+import { SyncEvent } from "@/sync"
+import { Session } from "@/session"
 
 export namespace Project {
   const log = Log.create({ service: "project" })
@@ -311,13 +313,19 @@ export namespace Project {
         )
 
         if (data.id !== ProjectID.global) {
-          yield* db((d) =>
+          const rows = yield* db((d) =>
             d
-              .update(SessionTable)
-              .set({ project_id: data.id })
+              .select({ id: SessionTable.id })
+              .from(SessionTable)
               .where(and(eq(SessionTable.project_id, ProjectID.global), eq(SessionTable.directory, data.worktree)))
-              .run(),
+              .all(),
           )
+          for (const row of rows) {
+            SyncEvent.run(Session.Event.Updated, {
+              sessionID: row.id,
+              info: { projectID: data.id },
+            })
+          }
         }
 
         yield* emitUpdated(result)
