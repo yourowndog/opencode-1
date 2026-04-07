@@ -29,66 +29,69 @@ import { batch, onMount, onCleanup } from "solid-js"
 import { Log } from "@/util/log"
 import type { Path } from "@opencode-ai/sdk"
 import type { Workspace } from "@opencode-ai/sdk/v2"
+import { ConsoleState, emptyConsoleState, type ConsoleState as ConsoleStateType } from "@/config/console-state"
 
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
-    name: "Sync",
-    init: () => {
-      const [store, setStore] = createStore<{
-        status: "loading" | "partial" | "complete"
-        provider: Provider[]
-        provider_default: Record<string, string>
-        provider_next: ProviderListResponse
-        provider_auth: Record<string, ProviderAuthMethod[]>
-        agent: Agent[]
-        command: Command[]
-        permission: {
-          [sessionID: string]: PermissionRequest[]
-        }
-        question: {
-          [sessionID: string]: QuestionRequest[]
-        }
-        config: Config
-        session: Session[]
-        session_status: {
-          [sessionID: string]: SessionStatus
-        }
-        session_diff: {
-          [sessionID: string]: Snapshot.FileDiff[]
-        }
-        todo: {
-          [sessionID: string]: Todo[]
-        }
-        message: {
-          [sessionID: string]: Message[]
-        }
-        part: {
-          [messageID: string]: Part[]
-        }
-        lsp: LspStatus[]
-        mcp: {
-          [key: string]: McpStatus
-        }
-        mcp_resource: {
-          [key: string]: McpResource
-        }
-        formatter: FormatterStatus[]
-        vcs: VcsInfo | undefined
-        path: Path
-        workspaceList: Workspace[]
-        sync: {
-          enabled: boolean
-          pending: number
-          lastPull: number
-          lastPush: number
-          lastError?: string
-          lastErrorTime?: number
-        }
-      }>({
+  name: "Sync",
+  init: () => {
+    const [store, setStore] = createStore<{
+      status: "loading" | "partial" | "complete"
+      provider: Provider[]
+      provider_default: Record<string, string>
+      provider_next: ProviderListResponse
+      console_state: ConsoleStateType
+      provider_auth: Record<string, ProviderAuthMethod[]>
+      agent: Agent[]
+      command: Command[]
+      permission: {
+        [sessionID: string]: PermissionRequest[]
+      }
+      question: {
+        [sessionID: string]: QuestionRequest[]
+      }
+      config: Config
+      session: Session[]
+      session_status: {
+        [sessionID: string]: SessionStatus
+      }
+      session_diff: {
+        [sessionID: string]: Snapshot.FileDiff[]
+      }
+      todo: {
+        [sessionID: string]: Todo[]
+      }
+      message: {
+        [sessionID: string]: Message[]
+      }
+      part: {
+        [messageID: string]: Part[]
+      }
+      lsp: LspStatus[]
+      mcp: {
+        [key: string]: McpStatus
+      }
+      mcp_resource: {
+        [key: string]: McpResource
+      }
+      formatter: FormatterStatus[]
+      vcs: VcsInfo | undefined
+      path: Path
+      workspaceList: Workspace[]
+      sync: {
+        enabled: boolean
+        pending: number
+        lastPull: number
+        lastPush: number
+        lastError?: string
+        lastErrorTime?: number
+      }
+    }>({
       provider_next: {
         all: [],
         default: {},
         connected: [],
       },
+      console_state: emptyConsoleState,
       provider_auth: {},
       config: {},
       status: "loading",
@@ -414,6 +417,10 @@ vcs: undefined,
       // blocking - include session.list when continuing a session
       const providersPromise = sdk.client.config.providers({}, { throwOnError: true })
       const providerListPromise = sdk.client.provider.list({}, { throwOnError: true })
+      const consoleStatePromise = sdk.client.experimental.console
+        .get({}, { throwOnError: true })
+        .then((x) => ConsoleState.parse(x.data))
+        .catch(() => emptyConsoleState)
       const agentsPromise = sdk.client.app.agents({}, { throwOnError: true })
       const configPromise = sdk.client.config.get({}, { throwOnError: true })
       const blockingRequests: Promise<unknown>[] = [
@@ -428,6 +435,7 @@ vcs: undefined,
         .then(() => {
           const providersResponse = providersPromise.then((x) => x.data!)
           const providerListResponse = providerListPromise.then((x) => x.data!)
+          const consoleStateResponse = consoleStatePromise
           const agentsResponse = agentsPromise.then((x) => x.data ?? [])
           const configResponse = configPromise.then((x) => x.data!)
           const sessionListResponse = args.continue ? sessionListPromise : undefined
@@ -435,20 +443,23 @@ vcs: undefined,
           return Promise.all([
             providersResponse,
             providerListResponse,
+            consoleStateResponse,
             agentsResponse,
             configResponse,
             ...(sessionListResponse ? [sessionListResponse] : []),
           ]).then((responses) => {
             const providers = responses[0]
             const providerList = responses[1]
-            const agents = responses[2]
-            const config = responses[3]
-            const sessions = responses[4]
+            const consoleState = responses[2]
+            const agents = responses[3]
+            const config = responses[4]
+            const sessions = responses[5]
 
             batch(() => {
               setStore("provider", reconcile(providers.providers))
               setStore("provider_default", reconcile(providers.default))
               setStore("provider_next", reconcile(providerList))
+              setStore("console_state", reconcile(consoleState))
               setStore("agent", reconcile(agents))
               setStore("config", reconcile(config))
               if (sessions !== undefined) setStore("session", reconcile(sessions))
@@ -460,6 +471,7 @@ vcs: undefined,
           // non-blocking
           Promise.all([
             ...(args.continue ? [] : [sessionListPromise.then((sessions) => setStore("session", reconcile(sessions)))]),
+            consoleStatePromise.then((consoleState) => setStore("console_state", reconcile(consoleState))),
             sdk.client.command.list().then((x) => setStore("command", reconcile(x.data ?? []))),
             sdk.client.lsp.status().then((x) => setStore("lsp", reconcile(x.data!))),
             sdk.client.mcp.status().then((x) => setStore("mcp", reconcile(x.data!))),
