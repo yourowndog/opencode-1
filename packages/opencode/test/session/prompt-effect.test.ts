@@ -539,6 +539,70 @@ it.live("failed subtask preserves metadata on error tool state", () =>
   ),
 )
 
+it.live("task tool falls back when parent assistant model is invalid", () =>
+  provideTmpdirServer(
+    Effect.fnUntraced(function* ({ llm }) {
+      const sessions = yield* Session.Service
+      const chat = yield* sessions.create({ title: "Pinned" })
+      const build = yield* Effect.promise(() => AgentSvc.get("build"))
+      if (!build) throw new Error("build agent not found")
+      const tool = yield* Effect.promise(() => TaskTool.init({ agent: build }))
+      const msg = yield* user(chat.id, "hello")
+      const bad = {
+        providerID: ProviderID.make("test"),
+        modelID: ModelID.make("missing-model"),
+      }
+
+      const assistant: MessageV2.Assistant = {
+        id: MessageID.ascending(),
+        role: "assistant",
+        parentID: msg.id,
+        sessionID: chat.id,
+        mode: "build",
+        agent: "build",
+        cost: 0,
+        path: { cwd: "/tmp", root: "/tmp" },
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        modelID: bad.modelID,
+        providerID: bad.providerID,
+        time: { created: Date.now() },
+      }
+      yield* sessions.updateMessage(assistant)
+      yield* llm.text("done")
+
+      const result = yield* Effect.promise(() =>
+        tool.execute(
+          {
+            description: "inspect bug",
+            prompt: "look into the cache key path",
+            subagent_type: "general",
+          },
+          {
+            sessionID: chat.id,
+            messageID: assistant.id,
+            callID: "",
+            agent: build,
+            abort: AbortSignal.any([]),
+            messages: [],
+            metadata: () => {},
+            ask: async () => {},
+          },
+        ),
+      )
+
+      expect(result.metadata.model).toEqual(ref)
+      expect(result.output).toContain("done")
+    }),
+    {
+      git: true,
+      config: (url) => ({
+        ...providerCfg(url),
+        model: "test/test-model",
+      }),
+    },
+  ),
+)
+
 it.live(
   "loop sets status to busy then idle",
   () =>

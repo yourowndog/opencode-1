@@ -29,10 +29,8 @@ const log = Log.create({ service: "db" })
 
 export namespace Database {
   export function getChannelPath() {
-    if (["latest", "beta"].includes(CHANNEL) || Flag.OPENCODE_DISABLE_CHANNEL_DB)
-      return path.join(Global.Path.data, "opencode.db")
-    const safe = CHANNEL.replace(/[^a-zA-Z0-9._-]/g, "-")
-    return path.join(Global.Path.data, `opencode-${safe}.db`)
+    // Force production DB for all channels in closedcode fork
+    return path.join(Global.Path.data, "opencode.db")
   }
 
   export const Path = iife(() => {

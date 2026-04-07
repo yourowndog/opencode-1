@@ -11,6 +11,7 @@ import { iife } from "@/util/iife"
 import { defer } from "@/util/defer"
 import { Config } from "../config/config"
 import { Permission } from "@/permission"
+import { Provider } from "../provider/provider"
 
 const parameters = z.object({
   description: z.string().describe("A short (3-5 words) description of the task"),
@@ -105,10 +106,13 @@ export const TaskTool = Tool.define("task", async (ctx) => {
       const msg = await MessageV2.get({ sessionID: ctx.sessionID, messageID: ctx.messageID })
       if (msg.info.role !== "assistant") throw new Error("Not an assistant message")
 
-      const model = agent.model ?? {
-        modelID: msg.info.modelID,
-        providerID: msg.info.providerID,
-      }
+      const inherited =
+        msg.info.modelID && msg.info.providerID
+          ? await Provider.getModel(msg.info.providerID, msg.info.modelID)
+              .then(() => ({ modelID: msg.info.modelID, providerID: msg.info.providerID }))
+              .catch(() => Provider.defaultModel())
+          : await Provider.defaultModel()
+      const model = agent.model ?? inherited
 
       ctx.metadata({
         title: params.description,
