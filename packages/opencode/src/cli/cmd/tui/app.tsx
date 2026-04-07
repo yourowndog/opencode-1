@@ -270,6 +270,20 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     return routes.get(name)?.at(-1)?.render
   }
 
+  // Register sync check callback for exit warnings
+  exit.setShouldExit(async () => {
+    if (sync.data.sync.enabled && sync.data.sync.pending > 0) {
+      const choice = await DialogConfirm.show(
+        dialog,
+        "Unsaved Changes",
+        `You have ${sync.data.sync.pending} unsynchronized session events. Exit anyway?`,
+        "Exit"
+      )
+      return choice === true
+    }
+    return true
+  })
+
   const api = createTuiApi({
     command,
     tuiConfig,
@@ -284,6 +298,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     theme: themeState,
     toast,
     renderer,
+    exit: exit,
   })
   onCleanup(() => {
     api.dispose()
@@ -866,7 +881,7 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
       `Successfully updated to OpenCode v${result.data.version}. Please restart the application.`,
     )
 
-    exit()
+exit()
   })
 
   const plugin = createMemo(() => {

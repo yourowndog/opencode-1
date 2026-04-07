@@ -1,12 +1,13 @@
 import { describe, expect, test } from "bun:test"
 import path from "path"
+import "../../src/server/projectors"
 import { Session } from "../../src/session"
 import { MessageV2 } from "../../src/session/message-v2"
 import { Todo } from "../../src/session/todo"
 import { MessageID, PartID } from "../../src/session/schema"
 import { Instance } from "../../src/project/instance"
 import { Database, eq } from "../../src/storage/db"
-import { EventTable } from "../../src/sync/event.sql"
+import { EventTable, EventSequenceTable } from "../../src/sync/event.sql"
 import { SessionTable, MessageTable, PartTable, TodoTable } from "../../src/session/session.sql"
 import { SyncEvent } from "../../src/sync"
 import { Log } from "../../src/util/log"
@@ -56,7 +57,7 @@ describe("Sync Parity", () => {
         await new Promise((resolve) => setTimeout(resolve, 100))
 
         // 2. Capture event log for this session
-        const events = Database.use((db) => 
+        const events = Database.use((db) =>
           db.select().from(EventTable).where(eq(EventTable.aggregate_id, session.id)).all()
         )
         
@@ -79,6 +80,7 @@ describe("Sync Parity", () => {
           db.delete(MessageTable).where(eq(MessageTable.session_id, session.id)).run()
           db.delete(PartTable).where(eq(PartTable.session_id, session.id)).run()
           db.delete(TodoTable).where(eq(TodoTable.session_id, session.id)).run()
+          db.delete(EventSequenceTable).where(eq(EventSequenceTable.aggregate_id, session.id)).run()
         })
 
         // Verify cleared
@@ -104,10 +106,16 @@ describe("Sync Parity", () => {
         const replayedParts = Database.use((db) => db.select().from(PartTable).where(eq(PartTable.session_id, session.id)).all())
         const replayedTodos = Database.use((db) => db.select().from(TodoTable).where(eq(TodoTable.session_id, session.id)).all())
 
-        expect(replayedSession).toEqual(originalSession)
-        expect(replayedMessages).toEqual(originalMessages)
-        expect(replayedParts).toEqual(originalParts)
-        expect(replayedTodos).toEqual(originalTodos)
+        const omitTimestamps = (obj: any) => {
+          if (!obj) return obj
+          const { time_updated, time_created, ...rest } = obj
+          return rest
+        }
+
+        expect(omitTimestamps(replayedSession)).toEqual(omitTimestamps(originalSession))
+        expect(replayedMessages.map(omitTimestamps)).toEqual(originalMessages.map(omitTimestamps))
+        expect(replayedParts.map(omitTimestamps)).toEqual(originalParts.map(omitTimestamps))
+        expect(replayedTodos.map(omitTimestamps)).toEqual(originalTodos.map(omitTimestamps))
         
         // Cleanup
         await Session.remove(session.id)

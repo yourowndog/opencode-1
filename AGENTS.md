@@ -4,6 +4,32 @@
 - Local `main` ref may not exist; use `dev` or `origin/dev` for diffs.
 - Prefer automation: execute requested actions without confirmation unless blocked by missing info or safety/irreversibility.
 
+## Tooling: Use MCP-based Code Intelligence
+
+### LSP via MCP Bridge (NOT raw LSP tools)
+Use the MCP LSP tools for all code navigation. They route through master-lsp-mcp:
+- `opencode-ts_hover`, `opencode-ts_definition`, `opencode-ts_diagnostics`, `opencode-ts_references`
+- `opencode-html_*` for HTML/Vue files
+- `opencode-sql_*` for SQL files
+
+**DO NOT** use raw `lsp_*` or `mcp_lsp_*` tools — they risk system hangs.
+
+### jcodemunch for Code Search (NOT raw grep/glob)
+Index first, then search symbols:
+```
+jcodemunch_index_folder → path: "/home/sam/projects/opencode-fork"
+jcodemunch_search_symbols → find functions/classes
+jcodemunch_get_file_outline → symbols in a file
+jcodemunch_search_text → full-text when symbol search misses
+```
+
+### jdocmunch for Documentation
+Index docs folders, then search sections:
+```
+jdocmunch_index_local → path: "/home/sam/projects/opencode-fork/docs"
+jdocmunch_search_sections → find relevant docs
+```
+
 ## Style Guide
 
 ### General Principles

@@ -19,6 +19,7 @@ export function Footer() {
   })
   const directory = useDirectory()
   const connected = useConnected()
+  const syncStatus = createMemo(() => sync.data.sync)
 
   const [store, setStore] = createStore({
     welcome: false,
@@ -80,6 +81,24 @@ export function Footer() {
                   </Match>
                 </Switch>
                 {mcp()} MCP
+              </text>
+            </Show>
+            <Show when={syncStatus().enabled}>
+              <text fg={theme.text}>
+                <Switch>
+                  <Match when={syncStatus().lastError}>
+                    <span style={{ fg: theme.error }}>⚠ </span>
+                    {syncStatus().pending}
+                  </Match>
+                  <Match when={syncStatus().pending > 0}>
+                    <span style={{ fg: theme.warning }}>↻ </span>
+                    {syncStatus().pending}
+                  </Match>
+                  <Match when={true}>
+                    <span style={{ fg: theme.success }}>✓ </span>
+                  </Match>
+                </Switch>
+                Sync
               </text>
             </Show>
             <text fg={theme.textMuted}>/status</text>

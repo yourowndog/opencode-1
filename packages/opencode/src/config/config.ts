@@ -913,6 +913,20 @@ export namespace Config {
         .describe(
           "Control sharing behavior:'manual' allows manual sharing via commands, 'auto' enables automatic sharing, 'disabled' disables all sharing",
         ),
+      sync: z
+        .object({
+          enabled: z.boolean().default(false),
+          server: z.string().url(),
+          auth: z
+            .object({
+              username: z.string(),
+              password: z.string(),
+            })
+            .optional(),
+          source: z.string().describe("Machine identity, e.g. 'pyrrhus', 'titan'"),
+        })
+        .optional()
+        .describe("Sync configuration for multi-device session synchronization"),
       autoshare: z
         .boolean()
         .optional()

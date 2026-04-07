@@ -4,7 +4,7 @@ import { Filesystem } from "@/util/filesystem"
 import { iife } from "@/util/iife"
 import { Log } from "@/util/log"
 import { Context } from "../util/context"
-import { Project } from "./project"
+import type { Project } from "./project"
 import { State } from "./state"
 
 export interface InstanceContext {
@@ -34,6 +34,7 @@ function emit(directory: string) {
 
 function boot(input: { directory: string; init?: () => Promise<any>; project?: Project.Info; worktree?: string }) {
   return iife(async () => {
+    const { Project } = await import("./project")
     const ctx =
       input.project && input.worktree
         ? {

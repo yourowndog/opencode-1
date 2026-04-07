@@ -25,57 +25,65 @@ import { createSimpleContext } from "./helper"
 import type { Snapshot } from "@/snapshot"
 import { useExit } from "./exit"
 import { useArgs } from "./args"
-import { batch, onMount } from "solid-js"
+import { batch, onMount, onCleanup } from "solid-js"
 import { Log } from "@/util/log"
 import type { Path } from "@opencode-ai/sdk"
 import type { Workspace } from "@opencode-ai/sdk/v2"
 
 export const { use: useSync, provider: SyncProvider } = createSimpleContext({
-  name: "Sync",
-  init: () => {
-    const [store, setStore] = createStore<{
-      status: "loading" | "partial" | "complete"
-      provider: Provider[]
-      provider_default: Record<string, string>
-      provider_next: ProviderListResponse
-      provider_auth: Record<string, ProviderAuthMethod[]>
-      agent: Agent[]
-      command: Command[]
-      permission: {
-        [sessionID: string]: PermissionRequest[]
-      }
-      question: {
-        [sessionID: string]: QuestionRequest[]
-      }
-      config: Config
-      session: Session[]
-      session_status: {
-        [sessionID: string]: SessionStatus
-      }
-      session_diff: {
-        [sessionID: string]: Snapshot.FileDiff[]
-      }
-      todo: {
-        [sessionID: string]: Todo[]
-      }
-      message: {
-        [sessionID: string]: Message[]
-      }
-      part: {
-        [messageID: string]: Part[]
-      }
-      lsp: LspStatus[]
-      mcp: {
-        [key: string]: McpStatus
-      }
-      mcp_resource: {
-        [key: string]: McpResource
-      }
-      formatter: FormatterStatus[]
-      vcs: VcsInfo | undefined
-      path: Path
-      workspaceList: Workspace[]
-    }>({
+    name: "Sync",
+    init: () => {
+      const [store, setStore] = createStore<{
+        status: "loading" | "partial" | "complete"
+        provider: Provider[]
+        provider_default: Record<string, string>
+        provider_next: ProviderListResponse
+        provider_auth: Record<string, ProviderAuthMethod[]>
+        agent: Agent[]
+        command: Command[]
+        permission: {
+          [sessionID: string]: PermissionRequest[]
+        }
+        question: {
+          [sessionID: string]: QuestionRequest[]
+        }
+        config: Config
+        session: Session[]
+        session_status: {
+          [sessionID: string]: SessionStatus
+        }
+        session_diff: {
+          [sessionID: string]: Snapshot.FileDiff[]
+        }
+        todo: {
+          [sessionID: string]: Todo[]
+        }
+        message: {
+          [sessionID: string]: Message[]
+        }
+        part: {
+          [messageID: string]: Part[]
+        }
+        lsp: LspStatus[]
+        mcp: {
+          [key: string]: McpStatus
+        }
+        mcp_resource: {
+          [key: string]: McpResource
+        }
+        formatter: FormatterStatus[]
+        vcs: VcsInfo | undefined
+        path: Path
+        workspaceList: Workspace[]
+        sync: {
+          enabled: boolean
+          pending: number
+          lastPull: number
+          lastPush: number
+          lastError?: string
+          lastErrorTime?: number
+        }
+      }>({
       provider_next: {
         all: [],
         default: {},
@@ -100,9 +108,17 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       mcp: {},
       mcp_resource: {},
       formatter: [],
-      vcs: undefined,
-      path: { state: "", config: "", worktree: "", directory: "" },
-      workspaceList: [],
+vcs: undefined,
+        path: { state: "", config: "", worktree: "", directory: "" },
+        workspaceList: [],
+        sync: {
+          enabled: false,
+          pending: 0,
+          lastPull: 0,
+          lastPush: 0,
+          lastError: undefined,
+          lastErrorTime: undefined,
+        },
     })
 
     const sdk = useSDK()
@@ -111,6 +127,39 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       const result = await sdk.client.experimental.workspace.list().catch(() => undefined)
       if (!result?.data) return
       setStore("workspaceList", reconcile(result.data))
+    }
+
+    async function pollSyncStatus() {
+      try {
+        const result = await sdk.client.sync.status()
+        setStore("sync", reconcile(result.data!))
+      } catch (err) {
+        // Ignore errors, sync might not be enabled
+      }
+    }
+
+    async function autoPush() {
+      try {
+        const result = await sdk.client.sync.push()
+        if (result.data?.pushed && result.data.pushed > 0) {
+          // Refresh status after successful push
+          await pollSyncStatus()
+        }
+      } catch (err) {
+        // Ignore errors, auto-push is best effort
+      }
+    }
+
+    async function autoPull() {
+      try {
+        const result = await sdk.client.sync.pull()
+        if (result.data?.pulled && result.data.pulled > 0) {
+          // Refresh status after successful pull
+          await pollSyncStatus()
+        }
+      } catch (err) {
+        // Ignore errors, auto-pull is best effort
+      }
     }
 
     sdk.event.listen((e) => {
@@ -423,6 +472,13 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
             sdk.client.vcs.get().then((x) => setStore("vcs", reconcile(x.data))),
             sdk.client.path.get().then((x) => setStore("path", reconcile(x.data!))),
             syncWorkspaces(),
+            sdk.client.sync.status().then((x) => {
+              setStore("sync", reconcile(x.data!))
+              // Auto-pull on startup if sync is enabled
+              if (x.data?.enabled) {
+                autoPull()
+              }
+            }),
           ]).then(() => {
             setStore("status", "complete")
           })
@@ -439,6 +495,21 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
 
     onMount(() => {
       bootstrap()
+      
+      // Poll sync status every 30 seconds
+      const syncInterval = setInterval(() => {
+        pollSyncStatus()
+      }, 30000)
+      
+      // Auto-push every 5 minutes (300000 ms)
+      const autoPushInterval = setInterval(() => {
+        autoPush()
+      }, 300000)
+      
+      onCleanup(() => {
+        clearInterval(syncInterval)
+        clearInterval(autoPushInterval)
+      })
     })
 
     const fullSyncedSessions = new Set<string>()

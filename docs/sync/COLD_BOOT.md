@@ -7,9 +7,9 @@
 
 | Phase | File | Status | Summary |
 |---|---|---|---|
-| 1 | `PHASE_1_EVENT_AUDIT.md` | NOT STARTED | Audit existing SyncEvent usage, enable flag, fill event coverage gaps |
-| 2 | `PHASE_2_SYNC_SERVER.md` | NOT STARTED | Build dumb sync server for beksinski (Bun + Hono + SQLite) |
-| 3 | `PHASE_3_SYNC_CLIENT.md` | NOT STARTED | Build sync client in opencode-fork (push/pull + lifecycle hooks) |
+| 1 | `PHASE_1_EVENT_AUDIT.md` | COMPLETE | Event audit done; parity test passing; all sync events go through SyncEvent.run |
+| 2 | `PHASE_2_SYNC_SERVER.md` | COMPLETE | Sync server deployed to beksinski on port 3001 (user-level systemd service) |
+| 3 | `PHASE_3_SYNC_CLIENT.md` | COMPLETE | Sync client implemented: config schema, SyncRemote (push/pull/status), bootstrap hooks, auto-flag |
 | 4 | `PHASE_4_INTEGRATION.md` | NOT STARTED | Cross-machine testing (pyrrhus ↔ titan ↔ beksinski) |
 | 5 | `PHASE_5_POLISH.md` | NOT STARTED | TUI sync indicator, CLI command, conflict reporting, phone support |
 
@@ -52,12 +52,21 @@ Auth:     Basic — username: opencode
           password: 91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=
 ```
 
-**Sync server (to be deployed in Phase 2)**:
+**Sync server (deployed, Phase 2 complete)**:
 ```
-Port:     3001 (planned)
+Port:     3001 (direct HTTP — no TLS yet, DNS subdomain not configured)
 Path:     /home/silo/sync-server/
-Service:  opencode-sync.service (systemd)
+Service:  ~/.config/systemd/user/opencode-sync.service (user-level systemd)
 DB:       /home/silo/sync-server/data/sync.db
+Note:     Caddy config updated with sync.opencode.brokentooth.io route but DNS not set
+```
+
+**Sync server endpoints**:
+```
+POST /sync/push   - Push events (batch, with dedup + sequence validation)
+GET  /sync/pull   - Pull events since cursor (max 1000, hasMore flag)
+GET  /sync/sessions - List known aggregates
+GET  /sync/health - Status check
 ```
 
 **Quick test from any machine**:
@@ -68,6 +77,6 @@ ssh silo@142.93.94.124 "uname -a"
 # Current opencode server
 curl -u opencode:'91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=' https://opencode.brokentooth.io/global/health
 
-# Sync server (after Phase 2 deploy)
-curl -u opencode:'91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=' https://opencode.brokentooth.io:3001/sync/health
+# Sync server (direct HTTP)
+curl -u opencode:'91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=' http://142.93.94.124:3001/sync/health
 ```

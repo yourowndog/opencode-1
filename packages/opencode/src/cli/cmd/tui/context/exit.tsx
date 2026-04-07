@@ -8,14 +8,19 @@ type Exit = ((reason?: unknown) => Promise<void>) & {
     clear: () => void
     get: () => string | undefined
   }
+  setShouldExit: (callback: () => Promise<boolean> | boolean) => void
 }
 
 export const { use: useExit, provider: ExitProvider } = createSimpleContext({
   name: "Exit",
-  init: (input: { onBeforeExit?: () => Promise<void>; onExit?: () => Promise<void> }) => {
+  init: (input: { 
+    onBeforeExit?: () => Promise<void>; 
+    onExit?: () => Promise<void>;
+  }) => {
     const renderer = useRenderer()
     let message: string | undefined
     let task: Promise<void> | undefined
+    let shouldExitCallback: (() => Promise<boolean> | boolean) | undefined
     const store = {
       set: (value?: string) => {
         const prev = message
@@ -33,6 +38,14 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
       (reason?: unknown) => {
         if (task) return task
         task = (async () => {
+          // Check if we should exit (e.g., pending sync operations)
+          if (shouldExitCallback) {
+            const ok = await Promise.resolve(shouldExitCallback())
+            if (!ok) {
+              task = undefined
+              return
+            }
+          }
           await input.onBeforeExit?.()
           // Reset window title before destroying renderer
           renderer.setTerminalTitle("")
@@ -52,6 +65,9 @@ export const { use: useExit, provider: ExitProvider } = createSimpleContext({
       },
       {
         message: store,
+        setShouldExit: (callback: () => Promise<boolean> | boolean) => {
+          shouldExitCallback = callback
+        },
       },
     )
     process.on("SIGHUP", () => exit())

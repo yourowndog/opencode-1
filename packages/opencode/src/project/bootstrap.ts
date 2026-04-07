@@ -11,6 +11,7 @@ import { Command } from "../command"
 import { Instance } from "./instance"
 import { Log } from "@/util/log"
 import { ShareNext } from "@/share/share-next"
+import { SyncRemote } from "../sync/remote"
 
 export async function InstanceBootstrap() {
   Log.Default.info("bootstrapping", { directory: Instance.directory })
@@ -28,4 +29,14 @@ export async function InstanceBootstrap() {
       Project.setInitialized(Instance.project.id)
     }
   })
+
+  // Auto-pull sync events on startup
+  try {
+    await SyncRemote.pull()
+  } catch (err) {
+    // Sync might not be enabled, ignore errors
+    Log.Default.debug("sync auto-pull failed", {
+      error: err instanceof Error ? err.message : String(err),
+    })
+  }
 }

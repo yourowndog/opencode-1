@@ -40,11 +40,13 @@ type Input = {
   theme: ReturnType<typeof useTheme>
   toast: ReturnType<typeof useToast>
   renderer: TuiPluginApi["renderer"]
+  exit?: () => Promise<void>
 }
 
 type TuiHostPluginApi = TuiPluginApi & {
   map: Map<string | undefined, OpencodeClient>
   dispose: () => void
+  exit?: () => Promise<void>
 }
 
 function routeRegister(routes: RouteMap, list: TuiRouteDefinition[], bump: () => void) {
@@ -416,5 +418,6 @@ export function createTuiApi(input: Input): TuiHostPluginApi {
     dispose() {
       map.clear()
     },
+    exit: input.exit,
   }
 }

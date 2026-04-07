@@ -1,0 +1,22 @@
+# User-level systemd service (install at ~/.config/systemd/user/opencode-sync.service)
+# Enable with: systemctl --user enable opencode-sync
+# Start with: systemctl --user start opencode-sync
+#
+# Note: requires loginctl enable-linger <user> for auto-start on boot
+[Unit]
+Description=OpenCode Sync Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/silo/sync-server
+ExecStart=/home/silo/.bun/bin/bun run dist/server.js
+Restart=always
+RestartSec=5
+Environment=OPENCODE_SERVER_PASSWORD=91+eVoNg9CLylRgKmYcDUQ0P3aIfrIr3AvtkWXtpGm4=
+Environment=OPENCODE_SERVER_USERNAME=opencode
+Environment=SYNC_PORT=3001
+Environment=SYNC_DB_PATH=/home/silo/sync-server/data/sync.db
+
+[Install]
+WantedBy=default.target

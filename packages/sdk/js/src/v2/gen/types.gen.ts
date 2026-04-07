@@ -18,35 +18,6 @@ export type EventInstallationUpdateAvailable = {
   }
 }
 
-export type Project = {
-  id: string
-  worktree: string
-  vcs?: "git"
-  name?: string
-  icon?: {
-    url?: string
-    override?: string
-    color?: string
-  }
-  commands?: {
-    /**
-     * Startup script to run when creating a new workspace (worktree)
-     */
-    start?: string
-  }
-  time: {
-    created: number
-    updated: number
-    initialized?: number
-  }
-  sandboxes: Array<string>
-}
-
-export type EventProjectUpdated = {
-  type: "project.updated"
-  properties: Project
-}
-
 export type EventServerInstanceDisposed = {
   type: "server.instance.disposed"
   properties: {
@@ -245,29 +216,6 @@ export type EventFileWatcherUpdated = {
   }
 }
 
-export type Todo = {
-  /**
-   * Brief description of the task
-   */
-  content: string
-  /**
-   * Current status of the task: pending, in_progress, completed, cancelled
-   */
-  status: string
-  /**
-   * Priority level of the task: high, medium, low
-   */
-  priority: string
-}
-
-export type EventTodoUpdated = {
-  type: "todo.updated"
-  properties: {
-    sessionID: string
-    todos: Array<Todo>
-  }
-}
-
 export type EventTuiPromptAppend = {
   type: "tui.prompt.append"
   properties: {
@@ -438,6 +386,35 @@ export type EventSessionError = {
       | ContextOverflowError
       | ApiError
   }
+}
+
+export type Project = {
+  id: string
+  worktree: string
+  vcs?: "git"
+  name?: string
+  icon?: {
+    url?: string
+    override?: string
+    color?: string
+  }
+  commands?: {
+    /**
+     * Startup script to run when creating a new workspace (worktree)
+     */
+    start?: string
+  }
+  time: {
+    created: number
+    updated: number
+    initialized?: number
+  }
+  sandboxes: Array<string>
+}
+
+export type EventProjectUpdated = {
+  type: "project.updated"
+  properties: Project
 }
 
 export type EventVcsBranchUpdated = {
@@ -896,6 +873,29 @@ export type EventMessagePartRemoved = {
   }
 }
 
+export type Todo = {
+  /**
+   * Brief description of the task
+   */
+  content: string
+  /**
+   * Current status of the task: pending, in_progress, completed, cancelled
+   */
+  status: string
+  /**
+   * Priority level of the task: high, medium, low
+   */
+  priority: string
+}
+
+export type EventTodoUpdated = {
+  type: "todo.updated"
+  properties: {
+    sessionID: string
+    todos: Array<Todo>
+  }
+}
+
 export type PermissionAction = "allow" | "deny" | "ask"
 
 export type PermissionRule = {
@@ -966,7 +966,6 @@ export type EventSessionDeleted = {
 export type Event =
   | EventInstallationUpdated
   | EventInstallationUpdateAvailable
-  | EventProjectUpdated
   | EventServerInstanceDisposed
   | EventServerConnected
   | EventGlobalDisposed
@@ -983,7 +982,6 @@ export type Event =
   | EventSessionCompacted
   | EventFileEdited
   | EventFileWatcherUpdated
-  | EventTodoUpdated
   | EventTuiPromptAppend
   | EventTuiCommandExecute
   | EventTuiToastShow
@@ -993,6 +991,7 @@ export type Event =
   | EventCommandExecuted
   | EventSessionDiff
   | EventSessionError
+  | EventProjectUpdated
   | EventVcsBranchUpdated
   | EventWorkspaceReady
   | EventWorkspaceFailed
@@ -1006,6 +1005,7 @@ export type Event =
   | EventMessageRemoved
   | EventMessagePartUpdated
   | EventMessagePartRemoved
+  | EventTodoUpdated
   | EventSessionCreated
   | EventSessionUpdated
   | EventSessionDeleted
@@ -1050,6 +1050,15 @@ export type SyncEventMessagePartRemoved = {
     sessionID: string
     messageID: string
     partID: string
+  }
+}
+
+export type SyncEventTodoUpdated = {
+  type: "todo.updated.1"
+  aggregate: "sessionID"
+  data: {
+    sessionID: string
+    todos: Array<Todo>
   }
 }
 
@@ -1464,6 +1473,21 @@ export type Config = {
    * Control sharing behavior:'manual' allows manual sharing via commands, 'auto' enables automatic sharing, 'disabled' disables all sharing
    */
   share?: "manual" | "auto" | "disabled"
+  /**
+   * Sync configuration for multi-device session synchronization
+   */
+  sync?: {
+    enabled?: boolean
+    server: string
+    auth?: {
+      username: string
+      password: string
+    }
+    /**
+     * Machine identity, e.g. 'pyrrhus', 'titan'
+     */
+    source: string
+  }
   /**
    * @deprecated Use 'share' field instead. Share newly created sessions automatically
    */
@@ -5006,6 +5030,76 @@ export type TuiControlResponseResponses = {
 }
 
 export type TuiControlResponseResponse = TuiControlResponseResponses[keyof TuiControlResponseResponses]
+
+export type SyncStatusData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/sync/status"
+}
+
+export type SyncStatusResponses = {
+  /**
+   * Sync status
+   */
+  200: {
+    enabled: boolean
+    pending: number
+    lastPull: number
+    lastPush: number
+    lastError?: string
+    lastErrorTime?: number
+  }
+}
+
+export type SyncStatusResponse = SyncStatusResponses[keyof SyncStatusResponses]
+
+export type SyncPushData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/sync/push"
+}
+
+export type SyncPushResponses = {
+  /**
+   * Push result
+   */
+  200: {
+    pushed: number
+    error?: string
+  }
+}
+
+export type SyncPushResponse = SyncPushResponses[keyof SyncPushResponses]
+
+export type SyncPullData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/sync/pull"
+}
+
+export type SyncPullResponses = {
+  /**
+   * Pull result
+   */
+  200: {
+    pulled: number
+    error?: string
+  }
+}
+
+export type SyncPullResponse = SyncPullResponses[keyof SyncPullResponses]
 
 export type InstanceDisposeData = {
   body?: never
