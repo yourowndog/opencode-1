@@ -10,7 +10,6 @@ import { Log } from "../../util/log"
 import { UI } from "../ui"
 import { SyncRemote } from "../../sync/remote"
 import { Instance } from "../../project/instance"
-import { InstanceBootstrap } from "../../project/bootstrap"
 
 export const SyncPushCommand = {
   command: "push",
@@ -19,7 +18,6 @@ export const SyncPushCommand = {
   handler: async () => {
     await Instance.provide({
       directory: process.cwd(),
-      init: InstanceBootstrap,
       fn: async () => {
         try {
           UI.println("Pushing sync events to remote server...")
@@ -48,7 +46,6 @@ export const SyncPullCommand = {
   handler: async () => {
     await Instance.provide({
       directory: process.cwd(),
-      init: InstanceBootstrap,
       fn: async () => {
         try {
           UI.println("Pulling sync events from remote server...")
@@ -77,7 +74,6 @@ export const SyncStatusCommand = {
   handler: async () => {
     await Instance.provide({
       directory: process.cwd(),
-      init: InstanceBootstrap,
       fn: async () => {
         try {
           const status = await SyncRemote.status()
@@ -109,7 +105,6 @@ export const SyncBackfillCommand = {
   handler: async () => {
     await Instance.provide({
       directory: process.cwd(),
-      init: InstanceBootstrap,
       fn: async () => {
         // Enable the flag so events are persisted
         process.env.OPENCODE_EXPERIMENTAL_WORKSPACES = "1"

@@ -581,7 +581,7 @@ it.live("task tool falls back when parent assistant model is invalid", () =>
             sessionID: chat.id,
             messageID: assistant.id,
             callID: "",
-            agent: build,
+            agent: build.name,
             abort: AbortSignal.any([]),
             messages: [],
             metadata: () => {},

@@ -104,12 +104,13 @@ export const TaskTool = Tool.define("task", async (ctx) => {
         })
       })
       const msg = await MessageV2.get({ sessionID: ctx.sessionID, messageID: ctx.messageID })
-      if (msg.info.role !== "assistant") throw new Error("Not an assistant message")
+      const info = msg.info
+      if (info.role !== "assistant") throw new Error("Not an assistant message")
 
       const inherited =
-        msg.info.modelID && msg.info.providerID
-          ? await Provider.getModel(msg.info.providerID, msg.info.modelID)
-              .then(() => ({ modelID: msg.info.modelID, providerID: msg.info.providerID }))
+        info.modelID && info.providerID
+          ? await Provider.getModel(info.providerID, info.modelID)
+              .then(() => ({ modelID: info.modelID, providerID: info.providerID }))
               .catch(() => Provider.defaultModel())
           : await Provider.defaultModel()
       const model = agent.model ?? inherited
