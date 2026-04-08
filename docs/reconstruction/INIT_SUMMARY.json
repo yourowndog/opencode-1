@@ -1,0 +1,67 @@
+{
+  "entrypoint": "cli/cmd/run.ts via closedcode compiled generic",
+  "runtime": {
+    "engine": "Bun",
+    "frameworks": ["SolidJS", "Effect-ts"]
+  },
+  "boot_steps": [
+    "invoke closedcode via bash",
+    "yargs parse options",
+    "Instance.provide bootstrap via Effect",
+    "DB Migrations execution",
+    "npm/Arborist dependencies check",
+    "Dynamic Plugin resolution via file:/// or npm",
+    "TUI mount and reactively bind to active session()"
+  ],
+  "critical_dependencies": [
+    "~/.config/opencode (config)",
+    "~/.local/share/opencode/opencode.db (sqlite)",
+    "omo-sams-squad (for subagents)"
+  ],
+  "plugin_system": {
+    "orchestrator_override": true,
+    "loaders": "dynamic esm imports",
+    "dependency_resolution": "@npmcli/arborist synchronous reification"
+  },
+  "agent_system": {
+    "default_agent": "orchestrator",
+    "fallback_manager": "ForegroundFallbackManager configures model switching on fly",
+    "models": "dynamic injection overriding static cli targets"
+  },
+  "session_system": {
+    "storage": "Local sqlite via DrizzleORM",
+    "tui_render": "Tied to boolean session() availability",
+    "sync": "Manual replication events disabled in current branch"
+  },
+  "sync_system": {
+    "status": "disabled",
+    "hub": "142.93.94.124"
+  },
+  "known_failures": [
+    {
+      "symptom": "bun install hang at startup",
+      "cause": "Arborist encountering malformed trees in ~/.config/opencode/node_modules",
+      "subsystem": "Plugin loader",
+      "fix_hint": "run bun install independently with a strict timeout or use --pure"
+    },
+    {
+      "symptom": "Gray Screen UI",
+      "cause": "session() evaluating to falsy / null instead of throwing bounded exception",
+      "subsystem": "TUI SolidJS Render",
+      "fix_hint": "Verify DB session exists and parent_id is valid"
+    }
+  ],
+  "known_breakpoints": [
+    "Arborist tree generation",
+    "TUI Effect scope binding"
+  ],
+  "do_not_trust": [
+    "Models command output vs plugin reality",
+    "Startup logs avoiding blocking operations",
+    ".bak config artifacts"
+  ],
+  "investigation_entrypoints": [
+    "closedcode run \"hi\" --print-logs --log-level DEBUG",
+    "tail -n 50 ~/.local/share/opencode/opencode.log"
+  ]
+}

@@ -152,3 +152,10 @@ const table = sqliteTable("session", {
 ## Type Checking
 
 - Always run `bun typecheck` from package directories (e.g., `packages/opencode`), never `tsc` directly.
+
+## Platform Context & Debugging (CRITICAL)
+
+When stepping into this environment, you MUST understand the architecture of the `closedcode` TUI IDE. 
+- Use the `jdocmunch` tool to index and read `/home/sam/projects/opencode-fork/docs/reconstruction/`.
+- Start by reading `/home/sam/projects/opencode-fork/docs/reconstruction/INIT_SUMMARY.json` to immediately import the system constraints, missing provider fallbacks, UI behaviors (e.g., Gray Screen), and network sync paradigms.
+- The `omo-sams-squad` plugin significantly alters runtime behavior vs static configs. Read the documentation before attempting to fix model or orchestrator failures.
