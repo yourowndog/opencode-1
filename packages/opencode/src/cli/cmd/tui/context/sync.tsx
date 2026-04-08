@@ -283,6 +283,9 @@ vcs: undefined,
 
         case "session.status": {
           setStore("session_status", event.properties.sessionID, event.properties.status)
+          if (event.properties.status.type === "idle") {
+            autoPush()
+          }
           break
         }
 

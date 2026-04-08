@@ -1248,6 +1248,24 @@ export function Prompt(props: PromptProps) {
                   <text fg={theme.text}>
                     {keybind.print("command_list")} <span style={{ fg: theme.textMuted }}>commands</span>
                   </text>
+                  <Show when={sync.data.sync.enabled}>
+                    <text fg={theme.text}>
+                      <Switch>
+                        <Match when={sync.data.sync.lastError}>
+                          <span style={{ fg: theme.error }}>⚠ </span>
+                          {sync.data.sync.pending}
+                        </Match>
+                        <Match when={sync.data.sync.pending > 0}>
+                          <span style={{ fg: theme.warning }}>↻ </span>
+                          {sync.data.sync.pending}
+                        </Match>
+                        <Match when={true}>
+                          <span style={{ fg: theme.success }}>✓ </span>
+                        </Match>
+                      </Switch>
+                      Sync
+                    </text>
+                  </Show>
                 </Match>
                 <Match when={store.mode === "shell"}>
                   <text fg={theme.text}>

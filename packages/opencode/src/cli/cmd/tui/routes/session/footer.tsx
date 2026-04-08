@@ -83,24 +83,6 @@ export function Footer() {
                 {mcp()} MCP
               </text>
             </Show>
-            <Show when={syncStatus().enabled}>
-              <text fg={theme.text}>
-                <Switch>
-                  <Match when={syncStatus().lastError}>
-                    <span style={{ fg: theme.error }}>⚠ </span>
-                    {syncStatus().pending}
-                  </Match>
-                  <Match when={syncStatus().pending > 0}>
-                    <span style={{ fg: theme.warning }}>↻ </span>
-                    {syncStatus().pending}
-                  </Match>
-                  <Match when={true}>
-                    <span style={{ fg: theme.success }}>✓ </span>
-                  </Match>
-                </Switch>
-                Sync
-              </text>
-            </Show>
             <text fg={theme.textMuted}>/status</text>
           </Match>
         </Switch>
