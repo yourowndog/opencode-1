@@ -10,7 +10,49 @@
       "packages/opencode/migration/*": "deny",
     },
   },
-  "mcp": {},
+  "mcp": {
+    "opencode-ts": {
+      "type": "local",
+      "command": [
+        "/home/sam/projects/master-lsp-mcp/master-lsp-mcp",
+        "--workspace",
+        "/home/sam/projects/opencode-fork/packages/opencode",
+        "--lsp",
+        "/home/sam/.npm-global/bin/typescript-language-server",
+        "--",
+        "--stdio"
+      ],
+      "timeout": 120000
+    },
+    "opencode-sql": {
+      "type": "local",
+      "command": [
+        "/home/sam/projects/master-lsp-mcp/master-lsp-mcp",
+        "--workspace",
+        "/home/sam/projects/opencode-fork",
+        "--lsp",
+        "/home/sam/.npm-global/bin/sql-language-server",
+        "--",
+        "up",
+        "--method",
+        "stdio"
+      ],
+      "timeout": 120000
+    },
+    "opencode-html": {
+      "type": "local",
+      "command": [
+        "/home/sam/projects/master-lsp-mcp/master-lsp-mcp",
+        "--workspace",
+        "/home/sam/projects/opencode-fork",
+        "--lsp",
+        "/home/sam/.npm-global/bin/vscode-html-language-server",
+        "--",
+        "--stdio"
+      ],
+      "timeout": 120000
+    }
+  },
   "tools": {
     "github-triage": false,
     "github-pr-search": false,
