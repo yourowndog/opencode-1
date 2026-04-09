@@ -161,7 +161,7 @@ export const SyncBackfillCommand = {
           }
 
           // 4. Todos
-          const todos = Todo.get(sessionID)
+          const todos = await Todo.get(sessionID)
           if (todos.length > 0) {
             SyncEvent.run(Todo.Event.Updated, {
               sessionID,

@@ -373,6 +373,8 @@
         "minimatch": "10.0.3",
         "npm-package-arg": "13.0.2",
         "open": "10.1.2",
+        "opencode-claude-auth": "1.4.9",
+        "opencode-gemini-auth": "1.4.10",
         "opencode-gitlab-auth": "2.0.1",
         "opencode-google-antigravity-auth": "0.2.15",
         "opencode-poe-auth": "0.0.1",
@@ -3941,6 +3943,10 @@
 
     "opencode": ["opencode@workspace:packages/opencode"],
 
+    "opencode-claude-auth": ["opencode-claude-auth@1.4.9", "", { "peerDependencies": { "@opencode-ai/plugin": "*" } }, "sha512-Da60/CphSd/Rlj+zsgvqqGemR1ZTbE71X6ISqZQfVT9OPS+lx1b36mMn7fAyqsZHQ66eNzyiC+sV2BEmYQHBoA=="],
+
+    "opencode-gemini-auth": ["opencode-gemini-auth@1.4.10", "", { "dependencies": { "@openauthjs/openauth": "^0.4.3", "@opencode-ai/plugin": "^1.2.20" }, "peerDependencies": { "typescript": "^5.9.3" } }, "sha512-PC5fPmomwXzlGpjGAYD0VdWP0HIXOIYE3pwXvx/FeumB44P4TWqP3sixueQNG1/TRHMYqTdRX7PF6wl3wgjioQ=="],
+
     "opencode-gitlab-auth": ["opencode-gitlab-auth@2.0.1", "", { "dependencies": { "@fastify/rate-limit": "^10.2.0", "@opencode-ai/plugin": "*", "fastify": "^5.2.0", "open": "^10.0.0" } }, "sha512-1EMZHdbADLMVaTVLQ6C/V8uVMDr6MP++osj2lmOecowtn46AafP/w6ADkV4AN/ddjA1rob5cWpMuf/iME6DI6A=="],
 
     "opencode-google-antigravity-auth": ["opencode-google-antigravity-auth@0.2.15", "", { "dependencies": { "@openauthjs/openauth": "^0.4.3", "@opencode-ai/plugin": "^1.0.182", "open": "^11.0.0" }, "peerDependencies": { "typescript": "^5.9.3" } }, "sha512-T0+aNB9yUC4AA/iOYqxDzbJS/4rFKzF8M4wj8d5DvDGItKvBvrr8Lg1vOQJ3LQ43R26OAq9qO3cMFOFNfoOCCw=="],
@@ -5705,6 +5711,8 @@
 
     "nypm/tinyexec": ["tinyexec@1.0.4", "", {}, "sha512-u9r3uZC0bdpGOXtlxUIdwf9pkmvhqJdrVCH9fapQtgy/OeTTMZ1nqH7agtvEfmGui6e1XxjcdrlxvxJvc3sMqw=="],
 
+    "opencode-gemini-auth/@openauthjs/openauth": ["@openauthjs/openauth@0.4.3", "", { "dependencies": { "@standard-schema/spec": "1.0.0-beta.3", "aws4fetch": "1.0.20", "jose": "5.9.6" }, "peerDependencies": { "arctic": "^2.2.2", "hono": "^4.0.0" } }, "sha512-RlnjqvHzqcbFVymEwhlUEuac4utA5h4nhSK/i2szZuQmxTIqbGUxZ+nM+avM+VV4Ing+/ZaNLKILoXS3yrkOOw=="],
+
     "opencode-google-antigravity-auth/@openauthjs/openauth": ["@openauthjs/openauth@0.4.3", "", { "dependencies": { "@standard-schema/spec": "1.0.0-beta.3", "aws4fetch": "1.0.20", "jose": "5.9.6" }, "peerDependencies": { "arctic": "^2.2.2", "hono": "^4.0.0" } }, "sha512-RlnjqvHzqcbFVymEwhlUEuac4utA5h4nhSK/i2szZuQmxTIqbGUxZ+nM+avM+VV4Ing+/ZaNLKILoXS3yrkOOw=="],
 
     "opencode-google-antigravity-auth/open": ["open@11.0.0", "", { "dependencies": { "default-browser": "^5.4.0", "define-lazy-prop": "^3.0.0", "is-in-ssh": "^1.0.0", "is-inside-container": "^1.0.0", "powershell-utils": "^0.1.0", "wsl-utils": "^0.3.0" } }, "sha512-smsWv2LzFjP03xmvFoJ331ss6h+jixfA4UUV/Bsiyuu4YJPfN+FIQGOIiv4w9/+MoHkfkJ22UIaQWRVFRfH6Vw=="],
@@ -6438,6 +6446,10 @@
     "motion/framer-motion/motion-dom": ["motion-dom@12.38.0", "", { "dependencies": { "motion-utils": "^12.36.0" } }, "sha512-pdkHLD8QYRp8VfiNLb8xIBJis1byQ9gPT3Jnh2jqfFtAsWUA3dEepDlsWe/xMpO8McV+VdpKVcp+E+TGJEtOoA=="],
 
     "motion/framer-motion/motion-utils": ["motion-utils@12.36.0", "", {}, "sha512-eHWisygbiwVvf6PZ1vhaHCLamvkSbPIeAYxWUuL3a2PD/TROgE7FvfHWTIH4vMl798QLfMw15nRqIaRDXTlYRg=="],
+
+    "opencode-gemini-auth/@openauthjs/openauth/@standard-schema/spec": ["@standard-schema/spec@1.0.0-beta.3", "", {}, "sha512-0ifF3BjA1E8SY9C+nUew8RefNOIq0cDlYALPty4rhUm8Rrl6tCM8hBT4bhGhx7I7iXD0uAgt50lgo8dD73ACMw=="],
+
+    "opencode-gemini-auth/@openauthjs/openauth/jose": ["jose@5.9.6", "", {}, "sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ=="],
 
     "opencode-google-antigravity-auth/@openauthjs/openauth/@standard-schema/spec": ["@standard-schema/spec@1.0.0-beta.3", "", {}, "sha512-0ifF3BjA1E8SY9C+nUew8RefNOIq0cDlYALPty4rhUm8Rrl6tCM8hBT4bhGhx7I7iXD0uAgt50lgo8dD73ACMw=="],
 

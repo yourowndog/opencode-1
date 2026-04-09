@@ -7,7 +7,6 @@ import z from "zod"
 import { Database, eq, asc } from "../storage/db"
 import { TodoTable } from "./session.sql"
 import { SyncEvent } from "@/sync"
-import { Effect } from "effect"
 
 export namespace Todo {
   export const Info = z

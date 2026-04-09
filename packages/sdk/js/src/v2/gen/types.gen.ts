@@ -4,34 +4,6 @@ export type ClientOptions = {
   baseUrl: `${string}://${string}` | (string & {})
 }
 
-export type Project = {
-  id: string
-  worktree: string
-  vcs?: "git"
-  name?: string
-  icon?: {
-    url?: string
-    override?: string
-    color?: string
-  }
-  commands?: {
-    /**
-     * Startup script to run when creating a new workspace (worktree)
-     */
-    start?: string
-  }
-  time: {
-    created: number
-    updated: number
-    initialized?: number
-  }
-  sandboxes: Array<string>
-}
-
-export type EventProjectUpdated = {
-  type: "project.updated"
-  properties: Project
-}
 export type EventInstallationUpdated = {
   type: "installation.updated"
   properties: {
@@ -992,7 +964,6 @@ export type EventSessionDeleted = {
 }
 
 export type Event =
-  | EventProjectUpdated
   | EventInstallationUpdated
   | EventInstallationUpdateAvailable
   | EventServerInstanceDisposed

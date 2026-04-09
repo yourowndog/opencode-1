@@ -11,6 +11,8 @@ import { CopilotAuthPlugin } from "./github-copilot/copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "opencode-gitlab-auth"
 import { PoeAuthPlugin } from "opencode-poe-auth"
 import { AntigravityOAuthPlugin } from "opencode-google-antigravity-auth"
+import { GeminiCLIOAuthPlugin } from "opencode-gemini-auth"
+import { ClaudeAuthPlugin } from "opencode-claude-auth"
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { Effect, Layer, ServiceMap, Stream } from "effect"
 import { InstanceState } from "@/effect/instance-state"
@@ -54,9 +56,13 @@ export namespace Plugin {
     GitlabAuthPlugin,
     PoeAuthPlugin,
     AntigravityOAuthPlugin,
+    GeminiCLIOAuthPlugin as unknown as PluginInstance,
+    ClaudeAuthPlugin as unknown as PluginInstance,
     CloudflareWorkersAuthPlugin,
     CloudflareAIGatewayAuthPlugin,
   ]
+
+
 
   function isServerPlugin(value: unknown): value is PluginInstance {
     return typeof value === "function"

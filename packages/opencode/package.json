@@ -138,6 +138,8 @@
     "minimatch": "10.0.3",
     "npm-package-arg": "13.0.2",
     "open": "10.1.2",
+    "opencode-claude-auth": "1.4.9",
+    "opencode-gemini-auth": "1.4.10",
     "opencode-gitlab-auth": "2.0.1",
     "opencode-google-antigravity-auth": "0.2.15",
     "opencode-poe-auth": "0.0.1",
