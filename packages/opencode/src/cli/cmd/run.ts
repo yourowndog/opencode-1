@@ -302,8 +302,14 @@ export const RunCommand = cmd({
         describe: "show thinking blocks",
         default: false,
       })
+      .option("pure", {
+        type: "boolean",
+        describe: "skip NPM/Arborist plugin sync check (offline-first boot)",
+        default: false,
+      })
   },
   handler: async (args) => {
+    if (args.pure) process.env.OPENCODE_PURE = "1"
     let message = [...args.message, ...(args["--"] || [])]
       .map((arg) => (arg.includes(" ") ? `"${arg.replace(/"/g, '\\"')}"` : arg))
       .join(" ")

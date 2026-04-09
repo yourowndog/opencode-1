@@ -1033,30 +1033,40 @@ export function Session() {
     >
       <box flexDirection="row">
         <box flexGrow={1} paddingBottom={1} paddingLeft={2} paddingRight={2} gap={1}>
-          <Show when={session()}>
-            <scrollbox
-              ref={(r) => (scroll = r)}
-              viewportOptions={{
-                paddingRight: showScrollbar() ? 1 : 0,
-              }}
-              verticalScrollbarOptions={{
-                paddingLeft: 1,
-                visible: showScrollbar(),
-                trackOptions: {
-                  backgroundColor: theme.backgroundElement,
-                  foregroundColor: theme.border,
-                },
-              }}
-              stickyScroll={true}
-              stickyStart="bottom"
-              flexGrow={1}
-              scrollAcceleration={scrollAcceleration()}
-            >
-              <box height={1} />
-              <For each={messages()}>
-                {(message, index) => (
-                  <Switch>
-                    <Match when={message.id === revert()?.messageID}>
+          <Switch>
+            <Match when={!session()}>
+              <box flexGrow={1} alignItems="center" justifyContent="center">
+                <box flexDirection="row" gap={1}>
+                  <Spinner />
+                  <text fg={theme.textMuted}>{"Connecting to session..."}</text>
+                </box>
+              </box>
+            </Match>
+            <Match when={session()}>
+              <scrollbox
+                ref={(r) => (scroll = r)}
+                viewportOptions={{
+                  paddingRight: showScrollbar() ? 1 : 0,
+                }}
+                verticalScrollbarOptions={{
+                  paddingLeft: 1,
+                  visible: showScrollbar(),
+                  trackOptions: {
+                    backgroundColor: theme.backgroundElement,
+                    foregroundColor: theme.border,
+                  },
+                }}
+                stickyScroll={true}
+                stickyStart="bottom"
+                flexGrow={1}
+                scrollAcceleration={scrollAcceleration()}
+              >
+                <box height={1} />
+                <For each={messages()}>
+                  {(message, index) => (
+                    <Switch>
+                      <Match when={message.id === revert()?.messageID}>
+
                       {(function () {
                         const command = useCommandDialog()
                         const [hover, setHover] = createSignal(false)
@@ -1149,40 +1159,41 @@ export function Session() {
                 )}
               </For>
             </scrollbox>
-            <box flexShrink={0}>
-              <Show when={permissions().length > 0}>
-                <PermissionPrompt request={permissions()[0]} />
-              </Show>
-              <Show when={permissions().length === 0 && questions().length > 0}>
-                <QuestionPrompt request={questions()[0]} />
-              </Show>
-              <Show when={session()?.parentID}>
-                <SubagentFooter />
-              </Show>
-              <Show when={visible()}>
-                <TuiPluginRuntime.Slot
-                  name="session_prompt"
-                  mode="replace"
-                  session_id={route.sessionID}
+            </Match>
+          </Switch>
+          <box flexShrink={0}>
+            <Show when={permissions().length > 0}>
+              <PermissionPrompt request={permissions()[0]} />
+            </Show>
+            <Show when={permissions().length === 0 && questions().length > 0}>
+              <QuestionPrompt request={questions()[0]} />
+            </Show>
+            <Show when={session()?.parentID}>
+              <SubagentFooter />
+            </Show>
+            <Show when={visible()}>
+              <TuiPluginRuntime.Slot
+                name="session_prompt"
+                mode="replace"
+                session_id={route.sessionID}
+                visible={visible()}
+                disabled={disabled()}
+                on_submit={toBottom}
+                ref={bind}
+              >
+                <Prompt
                   visible={visible()}
-                  disabled={disabled()}
-                  on_submit={toBottom}
                   ref={bind}
-                >
-                  <Prompt
-                    visible={visible()}
-                    ref={bind}
-                    disabled={disabled()}
-                    onSubmit={() => {
-                      toBottom()
-                    }}
-                    sessionID={route.sessionID}
-                    right={<TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />}
-                  />
-                </TuiPluginRuntime.Slot>
-              </Show>
-            </box>
-          </Show>
+                  disabled={disabled()}
+                  onSubmit={() => {
+                    toBottom()
+                  }}
+                  sessionID={route.sessionID}
+                  right={<TuiPluginRuntime.Slot name="session_prompt_right" session_id={route.sessionID} />}
+                />
+              </TuiPluginRuntime.Slot>
+            </Show>
+          </box>
           <Toast />
         </box>
         <Show when={sidebarVisible()}>
