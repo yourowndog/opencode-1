@@ -139,6 +139,7 @@
     "npm-package-arg": "13.0.2",
     "open": "10.1.2",
     "opencode-gitlab-auth": "2.0.1",
+    "opencode-google-antigravity-auth": "0.2.15",
     "opencode-poe-auth": "0.0.1",
     "opentui-spinner": "0.0.6",
     "partial-json": "0.1.7",

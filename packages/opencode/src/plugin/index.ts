@@ -10,6 +10,7 @@ import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./github-copilot/copilot"
 import { gitlabAuthPlugin as GitlabAuthPlugin } from "opencode-gitlab-auth"
 import { PoeAuthPlugin } from "opencode-poe-auth"
+import { AntigravityOAuthPlugin } from "opencode-google-antigravity-auth"
 import { CloudflareAIGatewayAuthPlugin, CloudflareWorkersAuthPlugin } from "./cloudflare"
 import { Effect, Layer, ServiceMap, Stream } from "effect"
 import { InstanceState } from "@/effect/instance-state"
@@ -52,6 +53,7 @@ export namespace Plugin {
     CopilotAuthPlugin,
     GitlabAuthPlugin,
     PoeAuthPlugin,
+    AntigravityOAuthPlugin,
     CloudflareWorkersAuthPlugin,
     CloudflareAIGatewayAuthPlugin,
   ]
